@@ -1,0 +1,514 @@
+% SatNOGS COMMS System Design Document - User Manual
+% Copyright (C) 2020, 2022 Libre Space Foundation
+%
+% This work is licensed under a
+% Creative Commons Attribution-ShareAlike 4.0 International License.
+%
+% You should have received a copy of the license along with this
+% work.  If not, see <http://creativecommons.org/licenses/by-sa/4.0/>.
+
+% Linter settings
+% chktex-file -2
+
+\documentclass[english,title,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{float}
+\usepackage[hidelinks]{hyperref}
+\usepackage[toc,acronyms,section,nopostdot,nonumberlist,section=section,numberedsection]{glossaries}
+\usepackage[toc]{appendix}
+\usepackage{graphicx}
+\usepackage{lastpage}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{lipsum}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage[maxfloats=500]{morefloats}
+\usepackage{lscape}
+\usepackage{makecell}
+\usepackage[table]{xcolor}
+\usepackage{fixme}
+\usepackage{pdfpages}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\newcommand\TBD[1]{\textcolor{red}{#1}}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyhead[L]{SatNOGS COMMS}
+  \fancyhead[R]{User Manual}
+  \fancyfoot[L]{Version \version\textit{DRAFT}}
+  \fancyfoot[C]{\thepage{} of~\pageref{LastPage}}
+  \fancyfoot[R]{\copyright{} Libre Space Foundation}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+}
+\pagestyle{plain}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\input{include/version}
+
+\makeglossaries{}
+
+%% Acronyms
+\input{glossaries/acronyms}
+
+\title{
+  User Manual \\
+  \large{SatNOGS COMMS} \\
+}
+\author{Libre Space Foundation}
+\date{Version \version\\\textit{DRAFT}}
+
+\titleformat{\chapter}[hang]
+{\normalfont\bfseries\Huge}{\thechapter.}{10pt}{}
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+\maketitle
+\hypersetup{pageanchor=true}
+\tableofcontents
+\newpage
+
+\chapter{Changelog}
+
+\begin{tabular}{llp{6.5cm}}
+    \toprule
+    Version & Date          & Changes                                     \\ \midrule
+    1.0     & Dec 18, 2023  & No Changes                                  \\ \midrule
+    1.1     & Dec 29, 2023  & No Changes                                  \\ \midrule
+    1.2     & Mar 19, 2024  & No Changes                                  \\ \midrule
+    1.3     & Apr 30, 2024  & No Changes                                  \\ \bottomrule
+\end{tabular}
+
+\chapter{Preface}\label{preface}
+
+SatNOGS COMMS is an open hardware and open source software project.
+This allows the end user to customize all aspects of the \acrshort{mcu} and \acrshort{fpga} Software to meet their needs.
+
+Further information regarding software can be found in the software repositories under
+\url{https://gitlab.com/librespacefoundation/satnogs-comms/}
+
+\chapter{Unpacking and handling}\label{unpacking-and-handling}
+
+SatNOGS COMMS is and \acrshort{esd} sensitive device.
+Standard \acrshort{esd} handling methods should be followed when handling the \acrshort{pcb}\@.
+
+Always use an \acrshort{esd} mat and \acrshort{esd} wrist strap.
+It is advised to wear gloves when handling the PCB and shield to avoid contamination.
+
+Should cleaning of any parts is required, use \acrshort{esd} safe cleaning methods and non-reactive solvents.
+
+\chapter{Hardware setup}\label{hardware-setup}
+
+\section{RF Connection}\label{rf-connection}
+
+SatNOGS COMMS should always be powered on with an antenna or RF load connected to its \acrshort{rf} ports.
+Failing to do so may result in catastrophic failure of the system.
+
+A 50 Ohm antenna or 50 Ohm \acrshort{rf} load capable of sinking 33dBm of power must be present to each \acrshort{rf} connector at all times.
+
+\section{Power supply}\label{power-supply}
+
+SatNOGS COMMS can operate over a voltage range of 6 to 14V DC \@.
+This can be provided either through a power supply or directly from the satellite battery.
+
+A power supply should be connected to VIN and GND pins as described in ICD \@.
+Adjust the current limit so that a maximum power of \TBD{xxW} is available.
+
+\chapter{Communication interfaces}\label{communication-interfaces}
+
+\section{Programming interface}\label{programming-interface}
+
+\acrshort{mcu} can be programmed and debugged via the provided SWD/JTAG interface available in connector Jxxx
+
+\section{External connectivity}\label{external-connectivity}
+
+\subsection{CAN Bus}\label{can-bus}
+
+There are two CAN Bus channels that can be configured either as standard CAN or CAN FD for speeds up to 5Mbps.
+COMMS uses CAN Bus to communicate with other subsystems and relay data or receive commands.
+
+\subsection{I2C}\label{i2c}
+
+I2C is provided for communication with I2C capable devices like antenna deployers, robes etc.
+
+\subsection{SPI}\label{spi}
+
+COMMS provides an SPI slave connection for up to 8 Mbit data transfer speeds.
+Slave communication is coordinated via CAN Bus instead of a dedicated slave select line.
+There are 2 CAN Bus commands for SPI control:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+  \item SPI Select
+  \item SPI Release
+\end{enumerate}
+
+Proper SPI communication sequence is:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+  \item Issue ``SPI Select'' command
+  \item Wait for acknowledge
+  \item Preform SPI communication
+  \item Issue ``SPI Release'' command
+  \item Wait for acknowledge
+\end{enumerate}
+
+\subsection{Antenna}\label{antenna}
+
+There are two antenna control lines and two antenna feedback lines available for managing antenna deployment.
+
+These are available on the dedicated antenna control connector as well as on the PC104 connector.
+
+Available commands are:
+
+\begin{itemize}
+  \item Antenna 1 control On/Off
+  \item Antenna 2 control On/Off
+  \item Antenna Feedback Request
+\end{itemize}
+
+Antenna Control Feedback is broadcast on CAN Bus when any of the two feedback lines changes state or an Antenna Feedback Request command is received.
+
+\section{RF Interfaces}\label{rf-interfaces}
+
+\chapter{Data Link Layer (Layer 2)}\label{data-link-layer-layer-2}
+
+Data link layer utilizes CCSDS Space Packet implemented by Open Space Data Link Protocol.
+See \url{https://gitlab.com/librespacefoundation/osdlp} for further information.
+
+\chapter{Physical Layer (Layer 1)}\label{physical-layer-layer-1}
+
+BPSK, FSK, MSK IEE802.15.4, CCSDS
+
+\section{Basic RF Mode}\label{basic-rf-mode}
+
+\subsection{Modulation}\label{modulation}
+
+\subsection{Frequency}\label{frequency}
+
+TX and RX at 390 MHz to 500 MHz
+
+TX at 2200 MHz to 2290 MHz
+
+RX at 2025 MHz to 2110 MHz
+
+\subsection{Bandwidth}\label{bandwidth}
+
+\section{Extended RF Mode}\label{extended-rf-mode}
+
+\subsection{Modulation}\label{modulation-1}
+
+\subsection{Frequency}\label{frequency-1}
+
+\subsection{Bandwidth}\label{bandwidth-1}
+
+\chapter{Command and status messaging}\label{command-and-status-messaging}
+
+\section{Commands}\label{commands}
+
+\subsection{Antenna control}\label{antenna-control}
+
+\subsection{Antenna feedback request}\label{antenna-feedback-request}
+
+\subsection{SPI Select}\label{spi-select}
+
+\subsection{SPI Release}\label{spi-release}
+
+\section{Messages}\label{messages}
+
+\subsection{Antenna Control Feedback}\label{antenna-control-feedback}
+
+\chapter{Self-protection functions}\label{self-protection-functions}
+
+\section{Temperature supervisor}\label{temperature-supervisor}
+
+There are several temperature sensor monitoring key components of COMMS \@.
+If an over-temperature event occurs, COMMS will disable the affected part of the circuit until temperature is within the operating envelope.
+
+\section{Power supervisor}\label{power-supervisor}
+
+COMMS power lines are monitored for over-current conditions.
+If an over-current event occurs, the affected part of the circuit can be disabled allowing the rest of COMMS systems to operate.
+
+COMMS power circuits incorporate continuous voltage monitoring of all onboard power supplies.
+
+There is a mechanism for mitigating \acrshort{seu} of MOSFETS in the DC-DC converters.
+Should a \acrshort{seu} occur, COMMS will power down and will need to be power cycled by the EPS in order to recover from the \acrshort{seu} \@.
+
+\chapter{Telemetry and Telecommand}\label{telemetry-and-telecommand}
+
+The telemetry and telecommand interface of the SatNOGS COMMS follows the \href{https://public.ccsds.org/Pubs/232x1b2e2c1.pdf}{CCSDS 232.1-B-2} utilizing the functionality and capabilities of the CCSDS Space Data Link.
+
+The interface software between the ground station and the SatNOGS COMMS is the \href{https://gitlab.com/librespacefoundation/osdlp-operator}{OSDLP-Operator}.
+This software, exploits the capabilities of the Space Link layer and implements all the necessary validity checks, re-transmissions, state transitions, priorities, virtual channel and session management, totally abstracting any implementation details from the ground station operator.
+
+The CCSDS Communications Operation Procedure specifies the Frame Operation Procedure (FOP) that executes within the sending entity, and a Frame Acceptance and Reporting Mechanism (FARM) that executes within the receiving entity.
+
+The OSDLP-Operator can support an arbitrary number of FOP and FARM configurations, using a descriptive text-based configuration language.
+Listings 1 and 2 provide example configurations for FARM and FOP respectively.
+The configurations can be altered without requiring any modification on the OSDLP-Operator software.
+This provides great flexibility on the ground station control software and allows for rapid development and prototyping, as well as fast reaction times during the in-orbit period.
+
+\begin{lstlisting}[language=C, caption = FARM example configuration]
+    // Declare which instance to run. For ground station use "fop".
+    // For receiving side (e.g. spacecraft) use "farm"
+    instance = "farm"
+
+    // Mission Parameters
+    mission:{
+      tc_sent_queue_max_cap = 200  // Maximum capacity of TC sent queue
+      tc_tx_queue_max_cap = 200    // Maximum capacity of TC TX queue
+      tc_rx_queue_max_cap = 200    // Maximum capacity of TX RX queue
+      scid = 20                    // The spacecraft ID
+      out_port = 6667
+      in_port = 6666
+    }
+
+    // Define the TC parameters
+    tc:{
+    // Define one such struct per virtual channel
+      vc1:{
+      // The following parameters apply to the whole VC
+         vcid = 1                   // The VC ID
+         crc = 1                    // CRC flag. 1 for on, 0 for off
+         segmentation = 0           // Defines whether to use segmentation
+
+         // Defines the available MAPs. Each MAP is a channel contained into
+         // the virtual channel. The following params apply to each MAP
+         map:{
+           map1:{
+             mapid = 1             // The MAP ID
+             bypass = 1            // Bypass flag. 0 for TYPE_A ->use the
+                                   // sequence checking mechanism. 1 for
+                                   // TYPE_B -> bypass sequence checking
+                                   // mechanism
+             ctrl_cmd = 1          // Control command flag. 0 for mission
+                                   //specific commands/data, 1 for FARM
+                                   // control information
+             data = ""             // For future use
+           }
+         }
+         // In case of farm instance, define this element
+         farm:{
+           win_width = 5           //Sliding window width
+         }
+      }
+
+      vc2:{
+         vcid = 2
+         crc = 1
+         segmentation = 0
+         map:{
+           map1:{
+             mapid = 1
+             bypass = 1
+             ctrl_cmd = 1
+             data = ""
+           }
+         }
+         farm:{
+           win_width = 5
+         }
+      }
+    }
+
+    // Define the TM parameters
+    tm:{
+    // One such element per virtual channel
+      vc1:{
+         vcid = 1             // The virtual channel ID
+         crc = 1              // CRC flag. 1 for on, 0 for off
+         ocf_flag = 1         // OCF flag. 1 for on, 0 for off
+         sec_hdr_on = 0       // Secondary header flag. 1 for on, 0 for off
+         sync_flag = 0        // Sync flag
+         stuff_state = 1      // Stuff packets state. 0 for ON 1 for OFF
+      }
+    }
+\end{lstlisting}
+
+\begin{lstlisting}[language=C, caption = FOP example configuration]
+    instance = "fop"
+
+    mission:{
+      tc_sent_queue_max_cap = 200
+      tc_tx_queue_max_cap = 200
+      tc_rx_queue_max_cap = 200
+      scid = 1
+      out_port = 16881
+      in_port = 16880
+      stdout_port = 16882        // UDP port for printing log messages
+    }
+
+    tc:{
+      vc0:{
+         vcid = 0
+         crc = 1
+         segmentation = 1
+         vc_name = "Management"
+         map:{
+           map1:{
+             mapid = 1
+             bypass = 0
+             ctrl_cmd = 0
+             data = "xA0x0Cx20x0CxA0x0Cx20x0CxA0x0Cx20x0CxA0x0Cx20x0CxA0x0Cx20x0CxA0x0Cx20x0C"
+             name = "Change periodic telemetry attributes"
+           }
+           map2:{
+             mapid = 2
+             bypass = 0
+             ctrl_cmd = 0
+             data = "xff"
+             name = "Request periodic telemetry attributes"
+           }
+           map3:{
+             mapid = 3
+             bypass = 0
+             ctrl_cmd = 0
+             data = ""
+             name = "Kill switch"
+           }
+           map4:{
+             mapid = 4
+             bypass = 0
+             ctrl_cmd = 0
+             data = "xff"
+             name = "Deploy antenna"
+           }
+         }
+         //In case of fop instance, define this element
+         fop:{
+           t1_init = 5                // The initial timer value in sec
+           transmission_limit = 20    // Transmission limit per packet
+           timeout_type = 0           // Timeout type
+           win_width = 5              // Sliding window width
+         }
+      }
+        vc2:{
+         vcid = 2
+         crc = 1
+         segmentation = 1
+         vc_name = "Request TM"
+         map:{
+           map1:{
+             mapid = 1
+             bypass = 0
+             ctrl_cmd = 0
+             data = "xa4"
+             name = "Request TM"
+           }
+         }
+         fop:{
+           t1_init = 5
+           transmission_limit = 30
+           timeout_type = 0
+           win_width = 20
+         }
+      }
+       vc3:{
+         vcid = 3
+         crc = 1
+         segmentation = 1
+         vc_name = "Experiment"
+         map:{
+           map1:{
+             mapid = 1
+             bypass = 0
+             ctrl_cmd = 0
+             data = "x01xFEx02x01x04x00x0A"
+             name = "Execute experiment"
+           }
+         }
+         fop:{
+           t1_init = 5
+           transmission_limit = 30
+           timeout_type = 0
+           win_width = 5
+         }
+      }
+    }
+    tm:{
+      vc0:{
+         vcid = 0
+         crc = 1
+         ocf_flag = 1
+         sec_hdr_on = 0
+         sync_flag = 0
+         stuff_state = 1
+         vc_name = "Management"
+      }
+      vc1:{
+         vcid = 1
+         crc = 1
+         ocf_flag = 0
+         sec_hdr_on = 0
+         sync_flag = 0
+         stuff_state = 1
+         vc_name = "Regular TM"
+      }
+        vc2:{
+         vcid = 2
+         crc = 1
+         ocf_flag = 1
+         sec_hdr_on = 0
+         sync_flag = 0
+         stuff_state = 1
+         vc_name = "Request TM"
+      }
+        vc3:{
+         vcid = 3
+         crc = 1
+         ocf_flag = 1
+         sec_hdr_on = 0
+         sync_flag = 0
+         stuff_state = 1
+         vc_name = "Experiment"
+      }
+    }
+\end{lstlisting}
+
+\section{Ground control setup}\label{ground-control-setup}
+
+The provided ground control software allows telemetry reception and telecommand of SatNOGS COMMS using a \acrshort{sdr} transceiver.
+
+\section{Telemetry format}\label{telemetry-format}
+
+\section{Telecommand format}\label{telecommand-format}
+
+\section{SatNOGS integration}\label{satnogs-integration}
+
+\chapter{Diagnostics}\label{diagnostics}
+
+\end{document}
